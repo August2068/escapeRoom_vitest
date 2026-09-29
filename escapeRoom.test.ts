@@ -44,4 +44,33 @@ describe("Player", () => {
     expect(room.getItems()).not.toContainEqual(item);
     expect(player.getInventory()).toContainEqual(item);
   });
+  it("un objet déjà ramassé ne peut pas être ramassé une seconde fois", () => {
+    const item = new Item("torch");
+    const room = new Room();
+    const player = new Player("GERARDJUGNOT");
+    room.addItem(item);
+    room.addItem(item);
+    player.lootItem(room, item);
+    expect(player.lootItem(room, item)).toBe(false);
+    expect(player.getInventory().length).toBe(1);
+  });
+  it("un objet déjà ramassé ne peut pas être ramassé une seconde fois", () => {
+    const item = new Item("torch");
+    const room = new Room();
+    const player = new Player("GERARDJUGNOT");
+    room.addItem(item);
+    room.addItem(item);
+    player.lootItem(room, item);
+    expect(player.lootItem(room, item)).toBe(false);
+    expect(player.getInventory().length).toBe(1);
+  });
+  it("un objet non présent dans une salle ne peut pas être ramassé", () => {
+    const item = new Item("torch");
+    const room = new Room();
+    const player = new Player("GERARDJUGNOT");
+    room.addItem(item);
+    player.lootItem(room, item);
+    expect(player.lootItem(room, item)).toBe(false);
+    expect(player.getInventory().length).toBe(1);
+  });
 });

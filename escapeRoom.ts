@@ -90,15 +90,22 @@ export class Player {
     if (!door.getKey()) {
       return !door.getLocked();
     }
+    if (!door.getLocked()) {
+      return !door.getLocked();
+    }
     const key = this.inventory.find((key) => key === door.getKey());
-    return key ? this.removeItem(key) : false;
+    return key ? (door.setLocked(), this.removeItem(key)) : false;
   }
 
-  lootItem(room: Room, item: Item) {
+  lootItem(room: Room, item: Item): boolean {
     if (!room.getItems().includes(item)) {
-      return;
+      return false;
+    }
+    if (this.inventory.find((itm) => itm === item)) {
+      return false;
     }
     this.addItem(item);
     room.removeItem(item);
+    return true;
   }
 }
