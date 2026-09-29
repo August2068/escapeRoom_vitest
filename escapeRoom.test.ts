@@ -1,5 +1,5 @@
 import { describe, expect, it, vitest } from "vitest";
-import { Door, Item, Key } from "./escapeRoom";
+import { Door, Item, Key, Room } from "./escapeRoom";
 import { Player } from "./escapeRoom";
 
 describe("Door", () => {
@@ -30,6 +30,18 @@ describe("Door", () => {
     player.addItem(item);
     player.passThroughDoor(door);
     expect(player.getInventory()).not.toContainEqual(key);
+    expect(player.getInventory()).toContainEqual(item);
+  });
+});
+
+describe("Player", () => {
+  it("lorsqu'un joueur ramasse un objet, celui-ci est ajouté à son inventaire et retiré de la salle", () => {
+    const item = new Item("torch");
+    const room = new Room();
+    const player = new Player("GERARDJUGNOT");
+    room.addItem(item);
+    player.lootItem(room, item);
+    expect(room.getItems()).not.toContainEqual(item);
     expect(player.getInventory()).toContainEqual(item);
   });
 });

@@ -1,3 +1,26 @@
+export class Room {
+  private items: Item[];
+  constructor(items?: Item[]) {
+    items ? (this.items = items) : (this.items = []);
+  }
+
+  addItem(item: Item) {
+    this.items.push(item);
+  }
+
+  getItems(): Item[] {
+    return this.items;
+  }
+
+  removeItem(item: Item) {
+    const index = this.items.indexOf(item);
+    if (!(index > -1)) {
+      return;
+    }
+    this.items.splice(index, 1);
+  }
+}
+
 export class Door {
   private isLocked: boolean = false;
   private key?: Key;
@@ -69,5 +92,13 @@ export class Player {
     }
     const key = this.inventory.find((key) => key === door.getKey());
     return key ? this.removeItem(key) : false;
+  }
+
+  lootItem(room: Room, item: Item) {
+    if (!room.getItems().includes(item)) {
+      return;
+    }
+    this.addItem(item);
+    room.removeItem(item);
   }
 }
