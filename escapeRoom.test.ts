@@ -73,4 +73,12 @@ describe("Player", () => {
     expect(player.lootItem(room, item)).toBe(false);
     expect(player.getInventory().length).toBe(1);
   });
+  it("un joueur ne peut utiliser qu'un objet qu'il possède dans son inventaire", () => {
+    const item = new Item("torch");
+    const item2 = new Item("dagger");
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(item);
+    expect(() => player.useItem(item2)).toThrow("item");
+    expect(player.useItem(item)).toBe(true);
+  });
 });

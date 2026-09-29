@@ -108,4 +108,11 @@ export class Player {
     room.removeItem(item);
     return true;
   }
+
+  useItem(item: Item): boolean {
+    if (!this.inventory.find((itm) => itm === item)) {
+      throw new Error("You do not have this item");
+    }
+    return true;
+  }
 }
