@@ -1,3 +1,44 @@
+export class Game {
+  private rooms: Room[] = [];
+  private doors: Door[] = [];
+  private players: Player[] = [];
+  private alarm: Alarm = new Alarm();
+
+  constructor() {}
+
+  getAlarm(): Alarm {
+    return this.alarm;
+  }
+
+  addRoom(room: Room) {
+    this.rooms.push(room);
+  }
+
+  addDoor(door: Door) {
+    this.doors.push(door);
+  }
+
+  addPlayer(player: Player) {
+    this.players.push(player);
+  }
+}
+
+export class Alarm {
+  private isActive: boolean = false;
+  constructor() {}
+  getIsActive(): boolean {
+    return this.isActive;
+  }
+
+  activate() {
+    this.isActive = true;
+  }
+
+  deactivate() {
+    this.isActive = false;
+  }
+}
+
 export class Room {
   private items: Item[];
   constructor(items?: Item[]) {
@@ -22,11 +63,13 @@ export class Room {
 }
 
 export class Door {
+  private isAlarmSensitive: boolean;
   private isLocked: boolean = false;
   private key?: Key;
   private riddle?: Riddle;
 
-  constructor(locked?: boolean, key?: Key) {
+  constructor(isAlarmSensitive: boolean, locked?: boolean, key?: Key) {
+    this.isAlarmSensitive = isAlarmSensitive;
     locked && (this.isLocked = locked);
     key && (this.key = key);
   }
@@ -49,6 +92,10 @@ export class Door {
 
   getRiddle(): Riddle | undefined {
     return this.riddle;
+  }
+
+  getisAlarmSensitive(): boolean {
+    return this.isAlarmSensitive;
   }
 }
 
@@ -95,7 +142,10 @@ export class Player {
     return this.inventory;
   }
 
-  passThroughDoor(door: Door): boolean {
+  passThroughDoor(door: Door, alarm: Alarm): boolean {
+    if (door.getisAlarmSensitive() && alarm.getIsActive()) {
+      return false;
+    }
     const riddle = door.getRiddle();
     if (riddle) {
       return riddle.getIsSolved();

@@ -1,21 +1,21 @@
 import { describe, expect, it, vitest } from "vitest";
-import { Door, Item, Key, Room, Riddle } from "./escapeRoom";
+import { Door, Item, Key, Room, Riddle, Game, Alarm } from "./escapeRoom";
 import { Player } from "./escapeRoom";
 
 describe("Door", () => {
   it("Une porte fermée ne peut pas être franchie", () => {
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
 
     expect(player.passThroughDoor(door)).toBe(false);
   });
   it("Une porte ouverte peut être franchie", () => {
-    const door = new Door();
+    const door = new Door(false);
     const player = new Player("GERARDJUGNOT");
   });
   it("Une porte peut nécéssiter une clé particulière pour être ouverte", () => {
     const key = new Key("red-key");
-    const door = new Door(true, key);
+    const door = new Door(false, true, key);
     const player = new Player("GERARDJUGNOT");
     player.addItem(key);
 
@@ -24,7 +24,7 @@ describe("Door", () => {
   it("ouvrir une porte avec une clé supprime la clé de l'inventaire mais conserve les autres objets", () => {
     const key = new Key("red-key");
     const item = new Item("torch");
-    const door = new Door(true, key);
+    const door = new Door(false, true, key);
     const player = new Player("GERARDJUGNOT");
     player.addItem(key);
     player.addItem(item);
@@ -34,7 +34,7 @@ describe("Door", () => {
   });
   it("une porte peut être associée à une énigme, le joueur doit fournir une bonne réponse pour franchir la porte", () => {
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     expect(player.solveRiddle(door, "TILALILALA")).toBe(true);
@@ -42,7 +42,7 @@ describe("Door", () => {
   });
   it("une porte peut être associée à une énigme, une mauvaise réponse ne permet pas de franchir la porte", () => {
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     expect(player.solveRiddle(door, "moi non")).toBe(false);
@@ -102,7 +102,7 @@ describe("Player", () => {
 describe("Riddle", () => {
   it("une énigme ne peut pas être résolue une seconde fois", () => {
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     player.solveRiddle(door, "TILALILALA");
@@ -110,7 +110,7 @@ describe("Riddle", () => {
   });
   it("chaque mauvaise réponse augmente le nbre de tentatives, après 3 une conséquence doit être déclenchées", () => {
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     player.solveRiddle(door, "moi non");
@@ -119,11 +119,45 @@ describe("Riddle", () => {
   });
   it("chaque mauvaise réponse augmente le nbre de tentatives, à 2 mauvaise réponse on peut toujours résoudre l'énigme", () => {
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
-    const door = new Door(true);
+    const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     player.solveRiddle(door, "moi non");
     player.solveRiddle(door, "moi non");
     expect(player.solveRiddle(door, "TILALILALA")).toBe(true);
+  });
+});
+
+describe("Alarm", () => {
+  it("l'alarme peut être inactive ou active et une action permet de déclencher l'alarme", () => {
+    const game = new Game();
+    expect(game.getAlarm().getIsActive()).toBe(false);
+    game.getAlarm().activate();
+    expect(game.getAlarm().getIsActive()).toBe(true);
+  });
+  it("certaines portes ne peuvent pas êtres franchies lorsque l'alarme est active", () => {
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    const game = new Game();
+    game.getAlarm().activate();
+    expect(game.getAlarm().getIsActive()).toBe(true);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("Une porte qui n'est pas concernée par l'alarme reste franchissable", () => {
+    const door = new Door(false);
+    const player = new Player("GERARDJUGNOT");
+    const game = new Game();
+    game.getAlarm().activate();
+    expect(game.getAlarm().getIsActive()).toBe(true);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
+  });
+  it("L'alarme reste active jusqu'à sa désactivation", () => {
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    const game = new Game();
+    game.getAlarm().activate();
+    game.getAlarm().deactivate();
+    expect(game.getAlarm().getIsActive()).toBe(false);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
 });
