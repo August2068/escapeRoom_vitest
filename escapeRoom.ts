@@ -158,6 +158,10 @@ export class Player {
     }
     const riddle = door.getRiddle();
     if (riddle) {
+      if (riddle.getIsSolved() && door.getKey()) {
+        const key = this.inventory.find((key) => key === door.getKey());
+        return key ? (door.setLocked(), this.removeItem(key)) : false;
+      }
       return riddle.getIsSolved();
     }
     if (!door.getKey()) {

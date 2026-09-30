@@ -4,49 +4,59 @@ import { Player } from "./escapeRoom";
 
 describe("Door", () => {
   it("Une porte fermée ne peut pas être franchie", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
 
-    expect(player.passThroughDoor(door)).toBe(false);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
   });
   it("Une porte ouverte peut être franchie", () => {
     const door = new Door(false);
     const player = new Player("GERARDJUGNOT");
   });
   it("Une porte peut nécéssiter une clé particulière pour être ouverte", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     const key = new Key("red-key");
     const door = new Door(false, true, key);
     const player = new Player("GERARDJUGNOT");
     player.addItem(key);
 
-    expect(player.passThroughDoor(door)).toBe(true);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
   it("ouvrir une porte avec une clé supprime la clé de l'inventaire mais conserve les autres objets", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     const key = new Key("red-key");
     const item = new Item("torch");
     const door = new Door(false, true, key);
     const player = new Player("GERARDJUGNOT");
     player.addItem(key);
     player.addItem(item);
-    player.passThroughDoor(door);
+    player.passThroughDoor(door, game.getAlarm());
     expect(player.getInventory()).not.toContainEqual(key);
     expect(player.getInventory()).toContainEqual(item);
   });
   it("une porte peut être associée à une énigme, le joueur doit fournir une bonne réponse pour franchir la porte", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
     const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     expect(player.solveRiddle(door, "TILALILALA")).toBe(true);
-    expect(player.passThroughDoor(door)).toBe(true);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
   it("une porte peut être associée à une énigme, une mauvaise réponse ne permet pas de franchir la porte", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
     const door = new Door(false, true);
     const player = new Player("GERARDJUGNOT");
     door.addRiddle(riddle);
     expect(player.solveRiddle(door, "moi non")).toBe(false);
-    expect(player.passThroughDoor(door)).toBe(false);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
   });
 });
 
@@ -185,7 +195,7 @@ describe("Alarm", () => {
     expect(game.getAlarm().getIsActive()).toBe(false);
     expect(player.getInventory().length).toBe(0);
   });
-  it("Le code permettant de désactiver l'alarme est un objet alarm-code, sans item pas possible de désactiver l'alarme", () => {
+  it("Le code permettant de désactiver l'alarme est un objet alarm-code, sans l'objet pas possible de désactiver l'alarme", () => {
     const alarmCode = new AlarmCode("1312");
     const game = new Game(alarmCode);
     const player = new Player("GERARDJUGNOT");
@@ -194,5 +204,112 @@ describe("Alarm", () => {
       game.getAlarm().deactivate(player.useItem(alarmCode));
     }).toThrow("item");
     expect(game.getAlarm().getIsActive()).toBe(true);
+  });
+});
+
+describe("laboratory test", () => {
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / test aucune condition remplie", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / uniquement la clé", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(key);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / uniquement l'énigme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.solveRiddle(door, "tous à bord");
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / uniquement l'alarme désactivée", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(alarmCode);
+    game.getAlarm().deactivate(player.useItem(alarmCode));
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / clé + énigme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.solveRiddle(door, "tous à bord");
+    player.addItem(key);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / clé + alarme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(key);
+    player.addItem(alarmCode);
+    game.getAlarm().deactivate(player.useItem(alarmCode));
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / énigme + alarme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(alarmCode);
+    game.getAlarm().deactivate(player.useItem(alarmCode));
+    player.solveRiddle(door, "tous à bord");
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
+  });
+  it("La porte du laboratoire nécessite: clé du labo,alarme désactivée, énigme résolue / clé + énigme + alarme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    const key = new Key("clé du laboratoire");
+    const riddle = new Riddle("montez", "tous à bord");
+    const door = new Door(true, true, key);
+    door.addRiddle(riddle);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(alarmCode);
+    game.getAlarm().deactivate(player.useItem(alarmCode));
+    player.solveRiddle(door, "tous à bord");
+    player.addItem(key);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
 });
