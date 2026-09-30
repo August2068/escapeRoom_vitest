@@ -98,3 +98,32 @@ describe("Player", () => {
     expect(player.useItem(item)).toBe(true);
   });
 });
+
+describe("Riddle", () => {
+  it("une énigme ne peut pas être résolue une seconde fois", () => {
+    const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    door.addRiddle(riddle);
+    player.solveRiddle(door, "TILALILALA");
+    expect(() => player.solveRiddle(door, "TILALILALA")).toThrow("already");
+  });
+  it("chaque mauvaise réponse augmente le nbre de tentatives, après 3 une conséquence doit être déclenchées", () => {
+    const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    door.addRiddle(riddle);
+    player.solveRiddle(door, "moi non");
+    player.solveRiddle(door, "moi non");
+    expect(() => player.solveRiddle(door, "moi non")).toThrow("died");
+  });
+  it("chaque mauvaise réponse augmente le nbre de tentatives, à 2 mauvaise réponse on peut toujours résoudre l'énigme", () => {
+    const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    door.addRiddle(riddle);
+    player.solveRiddle(door, "moi non");
+    player.solveRiddle(door, "moi non");
+    expect(player.solveRiddle(door, "TILALILALA")).toBe(true);
+  });
+});

@@ -131,6 +131,9 @@ export class Player {
 
   solveRiddle(door: Door, answer: string): boolean {
     const riddle = door.getRiddle();
+    if (riddle?.getIsSolved()) {
+      throw new Error("This riddle is already solved");
+    }
     return riddle ? riddle.resolve(answer) : true;
   }
 }
@@ -139,6 +142,7 @@ export class Riddle {
   private enigma: string;
   private answer: string;
   private isSolved: boolean = false;
+  private attempt: number = 0;
 
   constructor(enigma: string, answer: string) {
     this.enigma = enigma;
@@ -159,9 +163,15 @@ export class Riddle {
 
   resolve(answer: string): boolean {
     if (answer != this.answer) {
+      this.attempt += 1;
+      this.attempt >= 3 && this.retribution();
       return this.isSolved;
     }
     this.isSolved = true;
     return this.isSolved;
+  }
+
+  retribution() {
+    throw new Error("You died");
   }
 }
