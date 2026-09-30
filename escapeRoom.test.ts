@@ -1,5 +1,5 @@
 import { describe, expect, it, vitest } from "vitest";
-import { Door, Item, Key, Room } from "./escapeRoom";
+import { Door, Item, Key, Room, Riddle } from "./escapeRoom";
 import { Player } from "./escapeRoom";
 
 describe("Door", () => {
@@ -31,6 +31,22 @@ describe("Door", () => {
     player.passThroughDoor(door);
     expect(player.getInventory()).not.toContainEqual(key);
     expect(player.getInventory()).toContainEqual(item);
+  });
+  it("une porte peut être associée à une énigme, le joueur doit fournir une bonne réponse pour franchir la porte", () => {
+    const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    door.addRiddle(riddle);
+    expect(player.solveRiddle(door, "TILALILALA")).toBe(true);
+    expect(player.passThroughDoor(door)).toBe(true);
+  });
+  it("une porte peut être associée à une énigme, une mauvaise réponse ne permet pas de franchir la porte", () => {
+    const riddle = new Riddle("JAIMELAMUSIQUE", "TILALILALA");
+    const door = new Door(true);
+    const player = new Player("GERARDJUGNOT");
+    door.addRiddle(riddle);
+    expect(player.solveRiddle(door, "moi non")).toBe(false);
+    expect(player.passThroughDoor(door)).toBe(false);
   });
 });
 

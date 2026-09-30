@@ -24,6 +24,7 @@ export class Room {
 export class Door {
   private isLocked: boolean = false;
   private key?: Key;
+  private riddle?: Riddle;
 
   constructor(locked?: boolean, key?: Key) {
     locked && (this.isLocked = locked);
@@ -40,6 +41,14 @@ export class Door {
 
   getKey(): Key | undefined {
     return this.key;
+  }
+
+  addRiddle(riddle: Riddle) {
+    this.riddle = riddle;
+  }
+
+  getRiddle(): Riddle | undefined {
+    return this.riddle;
   }
 }
 
@@ -87,6 +96,10 @@ export class Player {
   }
 
   passThroughDoor(door: Door): boolean {
+    const riddle = door.getRiddle();
+    if (riddle) {
+      return riddle.getIsSolved();
+    }
     if (!door.getKey()) {
       return !door.getLocked();
     }
@@ -114,5 +127,41 @@ export class Player {
       throw new Error("You do not have this item");
     }
     return true;
+  }
+
+  solveRiddle(door: Door, answer: string): boolean {
+    const riddle = door.getRiddle();
+    return riddle ? riddle.resolve(answer) : true;
+  }
+}
+
+export class Riddle {
+  private enigma: string;
+  private answer: string;
+  private isSolved: boolean = false;
+
+  constructor(enigma: string, answer: string) {
+    this.enigma = enigma;
+    this.answer = answer;
+  }
+
+  getEnigma(): string {
+    return this.enigma;
+  }
+
+  getAnswer(): string {
+    return this.answer;
+  }
+
+  getIsSolved(): boolean {
+    return this.isSolved;
+  }
+
+  resolve(answer: string): boolean {
+    if (answer != this.answer) {
+      return this.isSolved;
+    }
+    this.isSolved = true;
+    return this.isSolved;
   }
 }
