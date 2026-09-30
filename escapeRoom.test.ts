@@ -1,5 +1,5 @@
 import { describe, expect, it, vitest } from "vitest";
-import { Door, Item, Key, Room, Riddle, Game, Alarm } from "./escapeRoom";
+import { Door, Item, Key, Room, Riddle, Game, AlarmCode } from "./escapeRoom";
 import { Player } from "./escapeRoom";
 
 describe("Door", () => {
@@ -95,7 +95,7 @@ describe("Player", () => {
     const player = new Player("GERARDJUGNOT");
     player.addItem(item);
     expect(() => player.useItem(item2)).toThrow("item");
-    expect(player.useItem(item)).toBe(true);
+    expect(player.useItem(item)).toBe(item);
   });
 });
 
@@ -130,7 +130,8 @@ describe("Riddle", () => {
 
 describe("Alarm", () => {
   it("l'alarme peut être inactive ou active et une action permet de déclencher l'alarme", () => {
-    const game = new Game();
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     expect(game.getAlarm().getIsActive()).toBe(false);
     game.getAlarm().activate();
     expect(game.getAlarm().getIsActive()).toBe(true);
@@ -138,7 +139,8 @@ describe("Alarm", () => {
   it("certaines portes ne peuvent pas êtres franchies lorsque l'alarme est active", () => {
     const door = new Door(true);
     const player = new Player("GERARDJUGNOT");
-    const game = new Game();
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     game.getAlarm().activate();
     expect(game.getAlarm().getIsActive()).toBe(true);
     expect(player.passThroughDoor(door, game.getAlarm())).toBe(false);
@@ -146,18 +148,51 @@ describe("Alarm", () => {
   it("Une porte qui n'est pas concernée par l'alarme reste franchissable", () => {
     const door = new Door(false);
     const player = new Player("GERARDJUGNOT");
-    const game = new Game();
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     game.getAlarm().activate();
     expect(game.getAlarm().getIsActive()).toBe(true);
     expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
-  it("L'alarme reste active jusqu'à sa désactivation", () => {
+  it("L'alarme reste active jusqu'à sa désactivation,Une fois l'alarme désactivée, les portes bloquées par l'alarme peuvent être franchies de nouveau", () => {
     const door = new Door(true);
     const player = new Player("GERARDJUGNOT");
-    const game = new Game();
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
     game.getAlarm().activate();
-    game.getAlarm().deactivate();
+    game.getAlarm().deactivate(alarmCode);
     expect(game.getAlarm().getIsActive()).toBe(false);
     expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
+  });
+  it("L'alarme peut être désactivée uniquement avec le bon code.", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    game.getAlarm().activate();
+    expect(() => {
+      game.getAlarm().deactivate(new AlarmCode("oskour"));
+    }).toThrow("Wrong");
+    expect(game.getAlarm().getIsActive()).toBe(true);
+    game.getAlarm().deactivate(alarmCode);
+    expect(game.getAlarm().getIsActive()).toBe(false);
+  });
+  it("Le code permettant de désactiver l'alarme est un objet alarm-code, l'utilisation de cet objet le consomme. ", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    const player = new Player("GERARDJUGNOT");
+    player.addItem(alarmCode);
+    game.getAlarm().activate();
+    game.getAlarm().deactivate(player.useItem(alarmCode));
+    expect(game.getAlarm().getIsActive()).toBe(false);
+    expect(player.getInventory().length).toBe(0);
+  });
+  it("Le code permettant de désactiver l'alarme est un objet alarm-code, sans item pas possible de désactiver l'alarme", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    const player = new Player("GERARDJUGNOT");
+    game.getAlarm().activate();
+    expect(() => {
+      game.getAlarm().deactivate(player.useItem(alarmCode));
+    }).toThrow("item");
+    expect(game.getAlarm().getIsActive()).toBe(true);
   });
 });

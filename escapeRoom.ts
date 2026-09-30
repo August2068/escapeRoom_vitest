@@ -2,39 +2,47 @@ export class Game {
   private rooms: Room[] = [];
   private doors: Door[] = [];
   private players: Player[] = [];
-  private alarm: Alarm = new Alarm();
+  private alarm: Alarm;
 
-  constructor() {}
+  constructor(alarmCode: AlarmCode) {
+    this.alarm = new Alarm(alarmCode);
+  }
 
   getAlarm(): Alarm {
     return this.alarm;
   }
 
-  addRoom(room: Room) {
+  addRoom(room: Room): void {
     this.rooms.push(room);
   }
 
-  addDoor(door: Door) {
+  addDoor(door: Door): void {
     this.doors.push(door);
   }
 
-  addPlayer(player: Player) {
+  addPlayer(player: Player): void {
     this.players.push(player);
   }
 }
 
 export class Alarm {
   private isActive: boolean = false;
-  constructor() {}
+  private alarmCode: AlarmCode;
+  constructor(alarmCode: AlarmCode) {
+    this.alarmCode = alarmCode;
+  }
   getIsActive(): boolean {
     return this.isActive;
   }
 
-  activate() {
+  activate(): void {
     this.isActive = true;
   }
 
-  deactivate() {
+  deactivate(alarmCode: AlarmCode): void {
+    if (alarmCode != this.alarmCode) {
+      throw new Error("Wrong code !");
+    }
     this.isActive = false;
   }
 }
@@ -45,7 +53,7 @@ export class Room {
     items ? (this.items = items) : (this.items = []);
   }
 
-  addItem(item: Item) {
+  addItem(item: Item): void {
     this.items.push(item);
   }
 
@@ -53,7 +61,7 @@ export class Room {
     return this.items;
   }
 
-  removeItem(item: Item) {
+  removeItem(item: Item): void {
     const index = this.items.indexOf(item);
     if (!(index > -1)) {
       return;
@@ -78,7 +86,7 @@ export class Door {
     return this.isLocked;
   }
 
-  setLocked() {
+  setLocked(): void {
     this.isLocked != this.isLocked;
   }
 
@@ -86,7 +94,7 @@ export class Door {
     return this.key;
   }
 
-  addRiddle(riddle: Riddle) {
+  addRiddle(riddle: Riddle): void {
     this.riddle = riddle;
   }
 
@@ -113,6 +121,8 @@ export class Item {
 
 export class Key extends Item {}
 
+export class AlarmCode extends Item {}
+
 export class Player {
   private name: string;
   private inventory: Item[] = [];
@@ -125,7 +135,7 @@ export class Player {
     return this.name;
   }
 
-  addItem(item: Item) {
+  addItem(item: Item): void {
     this.inventory.push(item);
   }
 
@@ -172,11 +182,12 @@ export class Player {
     return true;
   }
 
-  useItem(item: Item): boolean {
+  useItem(item: Item): Item {
     if (!this.inventory.find((itm) => itm === item)) {
       throw new Error("You do not have this item");
     }
-    return true;
+    this.removeItem(item);
+    return item;
   }
 
   solveRiddle(door: Door, answer: string): boolean {
@@ -221,7 +232,7 @@ export class Riddle {
     return this.isSolved;
   }
 
-  retribution() {
+  retribution(): void {
     throw new Error("You died");
   }
 }
