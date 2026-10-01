@@ -313,3 +313,58 @@ describe("laboratory test", () => {
     expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
   });
 });
+
+describe("Door deux joueurs requis", () => {
+  it("Une porte à deux joueurs ne peut être ouverte que si les deux joueurs sont présents et que chacun possède l'objet nécessaire / un seul joueur est présent", () => {
+    const player = new Player("GERARDJUGNOT");
+    const item = new Item("Hareng");
+    const item2 = new Item("Ashbringer");
+    const door = new Door(false);
+    player.addItem(item);
+    door.addItem([item, item2]);
+    expect(() => {
+      door.unlock([player]);
+    }).toThrow("player");
+  });
+  it("Une porte à deux joueurs ne peut être ouverte que si les deux joueurs sont présents et que chacun possède l'objet nécessaire / deux joueurs présents mais l'un deux ne possède pas son objet", () => {
+    const player = new Player("GERARDJUGNOT");
+    const player2 = new Player("Karim Debbache");
+    const item = new Item("Hareng");
+    const item2 = new Item("Ashbringer");
+    const door = new Door(false, true);
+    player.addItem(item);
+    door.addItem([item, item2]);
+    expect(() => {
+      door.unlock([player, player2]);
+    }).toThrow("players");
+  });
+  it("Une porte à deux joueurs ne peut être ouverte que si les deux joueurs sont présents et que chacun possède l'objet nécessaire / deux joueurs présents mais possèdent le même objet", () => {
+    const player = new Player("GERARDJUGNOT");
+    const player2 = new Player("Karim Debbache");
+    const item = new Item("Hareng");
+    const item2 = new Item("Ashbringer");
+    const door = new Door(false, true);
+    player.addItem(item);
+    player2.addItem(item);
+    door.addItem([item, item2]);
+    expect(() => {
+      door.unlock([player, player2]);
+    }).toThrow("An");
+  });
+  it("Une porte à deux joueurs ne peut être ouverte que si les deux joueurs sont présents et que chacun possède l'objet nécessaire / deux joueurs possède chacun le bon objet", () => {
+    const alarmCode = new AlarmCode("1312");
+    const game = new Game(alarmCode);
+    const player = new Player("GERARDJUGNOT");
+    const player2 = new Player("Karim Debbache");
+    const item = new Item("Hareng");
+    const item2 = new Item("Ashbringer");
+    const door = new Door(false, true);
+    player.addItem(item);
+    player2.addItem(item2);
+    door.addItem([item, item2]);
+    door.unlock([player, player2]);
+    expect(door.getLocked()).toBe(false);
+    expect(player.passThroughDoor(door, game.getAlarm())).toBe(true);
+    expect(player2.passThroughDoor(door, game.getAlarm())).toBe(true);
+  });
+});

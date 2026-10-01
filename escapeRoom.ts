@@ -75,6 +75,8 @@ export class Door {
   private isLocked: boolean = false;
   private key?: Key;
   private riddle?: Riddle;
+  private playersNeeded: number = 1;
+  private items: Item[] = [];
 
   constructor(isAlarmSensitive: boolean, locked?: boolean, key?: Key) {
     this.isAlarmSensitive = isAlarmSensitive;
@@ -82,12 +84,54 @@ export class Door {
     key && (this.key = key);
   }
 
+  addItem(items: Item[]): void {
+    this.items = items;
+    this.playersNeeded = items.length;
+  }
+
+  unlock(players: Player[]) {
+    if (players.length < this.playersNeeded) {
+      throw new Error(
+        `Missing ${this.playersNeeded - players.length} player(s) to unlock the door`,
+      );
+    }
+    let playersHaveItem: boolean = true;
+    players.forEach((player) => {
+      !this.checkItem(player.getInventory()) && (playersHaveItem = false);
+    });
+    if (!playersHaveItem) {
+      throw new Error("Some players are missing an object");
+    }
+    let itemFromPlayers: Item[] = [];
+    players.forEach((player) => {
+      player.getInventory().forEach((itm) => {
+        this.items.includes(itm) &&
+          !itemFromPlayers.includes(itm) &&
+          itemFromPlayers.push(itm);
+      });
+    });
+    if (itemFromPlayers.length != this.items.length) {
+      throw new Error("An object is missing");
+    }
+    this.isLocked = false;
+  }
+
+  private checkItem(items: Item[]): boolean {
+    let hasOneItemRequired: boolean = false;
+    items.forEach((item) => {
+      if (this.items.includes(item)) {
+        hasOneItemRequired = true;
+      }
+    });
+    return hasOneItemRequired;
+  }
+
   getLocked(): boolean {
     return this.isLocked;
   }
 
   setLocked(): void {
-    this.isLocked != this.isLocked;
+    this.playersNeeded < 2 && this.isLocked != this.isLocked;
   }
 
   getKey(): Key | undefined {
